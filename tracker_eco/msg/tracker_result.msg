@@ -1,0 +1,2 @@
+uint16 center_x
+uint16 center_y

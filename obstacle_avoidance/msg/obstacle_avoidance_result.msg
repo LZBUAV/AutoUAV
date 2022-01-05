@@ -1,0 +1,2 @@
+int16 center_x
+int16 center_y
