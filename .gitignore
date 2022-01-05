@@ -1,2 +1,2 @@
 *.weights
-./CMakeLists.txt
+CMakeLists.txt
