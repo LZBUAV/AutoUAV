@@ -93,7 +93,7 @@ public:
     cv::destroyWindow(RGB_WINDOW);
   }
 
-  void get_bbox(const darknet_ros_msgs::BoundingBoxes bboxs)
+  void get_bbox(const darknet_ros_msgs::BoundingBoxes& bboxs)
   {
     if(!is_init)
     {
