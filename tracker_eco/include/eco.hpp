@@ -1,6 +1,6 @@
 #ifndef ECO_HPP
 #define ECO_HPP
-
+#define USE_MULTI_THREAD
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <string>
