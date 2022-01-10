@@ -18,10 +18,8 @@
 #include <sensor_msgs/image_encodings.h>
 #include "geometry_msgs/Twist.h"
 
-#include <darknet_ros_msgs/BoundingBox.h>
-#include <darknet_ros_msgs/BoundingBoxes.h>
 #include <tracker_eco/tracker_result.h>
-
+#include <image_match/match_result.h>
 
 #include "eco.hpp"
 
@@ -90,7 +88,7 @@ public:
     {
         image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, &ImageConverter::imageCb, this);
         pub = nh_.advertise<tracker_eco::tracker_result>("tracker_result", 1);
-        sub_bboxs =  nh_.subscribe("/darknet_ros/bounding_boxes", 1, &ImageConverter::get_bbox, this);
+        sub_bboxs =  nh_.subscribe("/match_result", 1, &ImageConverter::get_bbox, this);
         cv::namedWindow(RGB_WINDOW);
     }
 
@@ -99,32 +97,17 @@ public:
         cv::destroyWindow(RGB_WINDOW);
     }
 
-    void get_bbox(const darknet_ros_msgs::BoundingBoxes bboxs)
+    void get_bbox(const image_match::match_result bbox)
     {
         if(!is_init)
         {
-            size_t num_boxs = bboxs.bounding_boxes.size();
-            int index = 0;
-            for(int i = 0; i < num_boxs; i++)
-            {
-                if(bboxs.bounding_boxes[i].id == 0 && bboxs.bounding_boxes[i].probability >= max_pra)
-                {
-                    index = i;
-                    is_person = true;
-                    max_pra = bboxs.bounding_boxes[i].probability;
-                }
-            }
-
-            if(is_person)
-            {
-                selectRect.x = bboxs.bounding_boxes[index].xmin;
-                selectRect.y = bboxs.bounding_boxes[index].ymin;
-                selectRect.width = bboxs.bounding_boxes[index].xmax - bboxs.bounding_boxes[index].xmin;
-                selectRect.height = bboxs.bounding_boxes[index].ymax - bboxs.bounding_boxes[index].ymin;
-                bRenewROI = true;
-                is_person = false;
-                is_init = true;
-            }
+            selectRect.x = bbox.x;
+            selectRect.y = bbox.y;
+            selectRect.width = bbox.width;
+            selectRect.height = bbox.height;
+            bRenewROI = true;
+            is_person = false;
+            is_init = true;
         }
     } 
 
