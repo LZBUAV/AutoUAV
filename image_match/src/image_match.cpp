@@ -104,7 +104,7 @@ double IMAGE_MATCH::compare_opencv(const cv::Mat& rgbimage, const cv::Rect& roi)
 }
 
 
-bool IMAGE_MATCH::match(const darknet_ros_msgs::BoundingBoxes& bbox, const cv::Mat& rgbimage, image_match::match_result& result)
+bool IMAGE_MATCH::match(const darknet_ros_msgs::BoundingBoxes& bbox, cv::Mat& rgbimage, image_match::match_result& result)
 {
     cv::Rect roi;
 
@@ -125,8 +125,6 @@ bool IMAGE_MATCH::match(const darknet_ros_msgs::BoundingBoxes& bbox, const cv::M
                 max_conficient_index = i;
                 max_conficient = conficient;
             }
-
-            // cv::imwrite("/home/lzb/personal/project/cpptest/images/lzb/" + std::to_string(std::rand()%1000) + ".jpg", rgbimage(roi));
         }
     }
 
@@ -134,6 +132,14 @@ bool IMAGE_MATCH::match(const darknet_ros_msgs::BoundingBoxes& bbox, const cv::M
     result.y = bbox.bounding_boxes[max_conficient_index].ymin;
     result.width = bbox.bounding_boxes[max_conficient_index].xmax-bbox.bounding_boxes[max_conficient_index].xmin;
     result.height = bbox.bounding_boxes[max_conficient_index].ymax-bbox.bounding_boxes[max_conficient_index].ymin;
+
+    if(bbox.bounding_boxes[max_conficient_index].id == 0)
+    {   
+        cv::rectangle(rgbimage, cv::Rect(result.x, result.y, result.width, result.height), cv::Scalar(0, 255, 255), 1, 0);
+        cv::putText(rgbimage, "max_conficient: " + std::to_string(max_conficient), cv::Point(50, 150), CV_FONT_NORMAL, 1, cv::Scalar(0, 255, 255), 3, 8);
+        cv::Rect max_roi(result.x, result.y, result.width, result.height);
+        // cv::imwrite("/home/lzb/personal/project/cpptest/images/lzb/" + std::to_string(std::rand()%1000) + ".jpg", rgbimage(max_roi));
+    }
 
     if(max_conficient >= 0.5)
     {

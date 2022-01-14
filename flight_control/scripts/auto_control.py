@@ -12,7 +12,7 @@
 import rospy
 from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import String
-from track_kcf.msg import tracker_result
+from tracker_eco.msg import tracker_result
 from obstacle_avoidance.msg import obstacle_avoidance_result
 from simple_pid import PID
 
@@ -57,15 +57,15 @@ class auto_control():
         elif self.angle < -self.MAX_ANGLE:
             self.angle = -self.MAX_ANGLE
 
-        # print('angle :', self.angle)
-        # print('foward', self.forward)
+        print('angle :', self.angle)
+        print('foward', self.forward)
 
-        # self.twist.twist.linear.x = self.forward
-        # if self.flag == 1:
-        #     self.twist.twist.linear.x = 0
-        # self.twist.twist.angular.z = self.angle
+        self.twist.twist.linear.x = self.forward
+        if self.flag == 1:
+            self.twist.twist.linear.x = 0
+        self.twist.twist.angular.z = self.angle
 
-        # pub.publish(self.twist)
+        pub.publish(self.twist)
 
 
     def avoidance_call_back(self, center):

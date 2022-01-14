@@ -81,7 +81,7 @@ public:
   ImageConverter()
     : it_(nh_)
   {
-    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, &ImageConverter::imageCb, this);
+    image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, &ImageConverter::imageCb, this);
     pub = nh_.advertise<tracker_kcf::tracker_result>("tracker_result", 1);
     sub_bboxs = nh_.subscribe("/darknet_ros/bounding_boxes", 1, &ImageConverter::get_bbox, this); 
 
