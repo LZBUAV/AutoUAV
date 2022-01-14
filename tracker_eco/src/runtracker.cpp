@@ -86,7 +86,7 @@ public:
 
     ImageConverter() : it_(nh_)
     {
-        image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, &ImageConverter::imageCb, this);
+        image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, &ImageConverter::imageCb, this);
         pub = nh_.advertise<tracker_eco::tracker_result>("tracker_result", 1);
         sub_bboxs =  nh_.subscribe("/match_result", 1, &ImageConverter::get_bbox, this);
         cv::namedWindow(RGB_WINDOW);

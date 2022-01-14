@@ -23,7 +23,7 @@ public:
 
     double compare_opencv(const cv::Mat& rgbimage, const cv::Rect& roi);
 
-    bool match(const darknet_ros_msgs::BoundingBoxes& bbox, const cv::Mat& rgbimage, image_match::match_result& retult);
+    bool match(const darknet_ros_msgs::BoundingBoxes& bbox, cv::Mat& rgbimage, image_match::match_result& retult);
 
     std::vector<std::vector<cv::Mat>> base_features;
 };
