@@ -71,14 +71,14 @@ void onMouse(int event, int x, int y, int, void*)
         selectRect.height = abs(y - origin.y);
         selectRect &= cv::Rect(0, 0, rgbimage.cols, rgbimage.rows);
     }
-    if (event == CV_EVENT_LBUTTONDOWN)
+    if (event == cv::EVENT_LBUTTONDOWN)
     {
         bBeginKCF = false;  
         select_flag = true; 
         origin = cv::Point(x, y);       
         selectRect = cv::Rect(x, y, 0, 0);  
     }
-    else if (event == CV_EVENT_LBUTTONUP)
+    else if (event == cv::EVENT_LBUTTONUP)
     {
         select_flag = false;
         bRenewROI = true;
@@ -233,7 +233,7 @@ int main(int argc, char** argv)
     twist.angular.z = rotation_speed;
     ic.pub.publish(twist);
 
-		if (cvWaitKey(33) == 'q')
+		if (cv::waitKey(33) == 'q')
       break;
 	}
 

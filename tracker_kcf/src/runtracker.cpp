@@ -54,14 +54,14 @@ void onMouse(int event, int x, int y, int, void*)
         selectRect.height = abs(y - origin.y);
         selectRect &= cv::Rect(0, 0, rgbimage.cols, rgbimage.rows);
     }
-    if (event == CV_EVENT_LBUTTONDOWN)
+    if (event == cv::EVENT_LBUTTONDOWN)
     {
         bBeginKCF = false;  
         select_flag = true; 
         origin = cv::Point(x, y);       
         selectRect = cv::Rect(x, y, 0, 0);  
     }
-    else if (event == CV_EVENT_LBUTTONUP)
+    else if (event == cv::EVENT_LBUTTONUP)
     {
         select_flag = false;
         bRenewROI = true;
@@ -97,7 +97,7 @@ public:
   {
     if(!is_init)
     {
-      size_t num_boxs = bboxs.bounding_boxes.size();
+      int num_boxs = bboxs.bounding_boxes.size();
       int index = 0;
       for(int i = 0; i < num_boxs; i++)
       {
@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 		ros::spinOnce();
     ic.pub.publish(center);
 
-		if (cvWaitKey(33) == 'q')
+		if (cv::waitKey(33) == 'q')
       break;
 	}
 
