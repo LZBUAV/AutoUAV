@@ -1,3 +1,4 @@
 *.weights
 *.o
-CMakeLists.txt
+./CMakeLists.txt
+.vscode
