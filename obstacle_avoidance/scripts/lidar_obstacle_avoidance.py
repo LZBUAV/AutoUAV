@@ -21,23 +21,23 @@ class avoidance():
         assert isinstance(cloud, PointCloud2)
         gen = point_cloud2.read_points(cloud)
         #实物
-        # data = []
-        # for point in gen:
-        #     data.append(point[0])
+        data = []
+        for point in gen:
+            data.append(point[0])
 
         #仿真
-        cou = 0
-        swap_data = []
-        data_1 = []
-        for point in gen:
-            data_1.append(0)
-            swap_data.append(point[0])
-        for col in range(160):
-            for row in range(60):
-                data_1[160*row + col] = swap_data[cou]
-                cou += 1
-        data = []
-        data = data_1[::-1]
+        # cou = 0
+        # swap_data = []
+        # data_1 = []
+        # for point in gen:
+        #     data_1.append(0)
+        #     swap_data.append(point[0])
+        # for col in range(160):
+        #     for row in range(60):
+        #         data_1[160*row + col] = swap_data[cou]
+        #         cou += 1
+        # data = []
+        # data = data_1[::-1]
         #仿真结束
         
         m10 = []
