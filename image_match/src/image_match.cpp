@@ -25,7 +25,7 @@ void IMAGE_MATCH::get_color(const cv::Mat& rgbimage, const cv::Rect& roi , std::
     cv::Mat frame_gray;
     cv::Mat frame_gray_resized;
 
-    cv::cvtColor(frame, frame_gray, CV_BGR2BGRA);
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2BGRA);
 
     int w = frame_gray.cols, h = frame_gray.rows;
     int size_col = w%3;
@@ -136,7 +136,7 @@ bool IMAGE_MATCH::match(const darknet_ros_msgs::BoundingBoxes& bbox, cv::Mat& rg
     if(bbox.bounding_boxes[max_conficient_index].id == 0)
     {   
         cv::rectangle(rgbimage, cv::Rect(result.x, result.y, result.width, result.height), cv::Scalar(0, 255, 255), 1, 0);
-        cv::putText(rgbimage, "max_conficient: " + std::to_string(max_conficient), cv::Point(50, 150), CV_FONT_NORMAL, 1, cv::Scalar(0, 255, 255), 3, 8);
+        cv::putText(rgbimage, "max_conficient: " + std::to_string(max_conficient), cv::Point(50, 150), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 3, 8);
         cv::Rect max_roi(result.x, result.y, result.width, result.height);
         // cv::imwrite("/home/lzb/personal/project/cpptest/images/lzb/" + std::to_string(std::rand()%1000) + ".jpg", rgbimage(max_roi));
     }

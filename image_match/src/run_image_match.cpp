@@ -5,7 +5,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 
-match::IMAGE_MATCH image_match_("/home/lzb/personal/project/cpptest/images/lzb/");
+match::IMAGE_MATCH image_match_("/home/nvidia/project/catkin_ws/src/image_match/base_images/");
 cv::Mat rgbimage;
 image_match::match_result result;
 std::string match_window = "match";
@@ -15,7 +15,7 @@ class RUN_MATCH
 public:
     RUN_MATCH() : it_(nh_)
     {
-        image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, &RUN_MATCH::imageCb, this);
+        image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, &RUN_MATCH::imageCb, this);
         bbox_sub_ = nh_.subscribe("/darknet_ros/bounding_boxes", 1, &RUN_MATCH::matchCb, this);
         pub = nh_.advertise<image_match::match_result>("match_result", 1);
         cv::namedWindow(match_window);
@@ -52,7 +52,7 @@ public:
         }
         else
         {
-            cv::putText(rgbimage, "No Match", cv::Point(50, 50), CV_FONT_NORMAL, 1, cv::Scalar(0, 255, 255), 3, 8);
+            cv::putText(rgbimage, "No Match", cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 3, 8);
             std::cout << "No Match" << std::endl;
         }
     }
@@ -73,6 +73,7 @@ int main(int argc, char** argv)
     while (ros::ok())
     {
         ros::spinOnce();
+
         cv::imshow(match_window, rgbimage);
         cv::waitKey(1);
     }

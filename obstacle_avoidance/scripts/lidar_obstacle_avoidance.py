@@ -373,5 +373,5 @@ if __name__=='__main__':
     avoidance = avoidance()
     pub = rospy.Publisher('obstacle_avoidance_result', obstacle_avoidance_result, queue_size=1)
     rospy.init_node('obstacle_avoidance', anonymous=True)
-    rospy.Subscriber("/velodyne_points", PointCloud2, avoidance.call_back, queue_size = 1, buff_size = 52428800)
+    rospy.Subscriber("/cloudpoint", PointCloud2, avoidance.call_back, queue_size = 1, buff_size = 52428800)
     rospy.spin()

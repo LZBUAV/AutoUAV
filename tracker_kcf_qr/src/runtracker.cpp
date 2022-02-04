@@ -99,7 +99,7 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, 
+    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, 
       &ImageConverter::imageCb, this);
     depth_sub_ = it_.subscribe("/camera/depth/image", 1, 
       &ImageConverter::depthCb, this);

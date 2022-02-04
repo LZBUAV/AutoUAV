@@ -236,7 +236,6 @@ file(GLOB eco_srcs
       ${CMAKE_CURRENT_LIST_DIR}/src/runtracker.cpp)
 
 SET(MULTI_THREAD 1)
-SET(SIMD 1)
 SET(CMAKE_BUILD_TYP Release)
 
 if(SIMD GREATER 0)

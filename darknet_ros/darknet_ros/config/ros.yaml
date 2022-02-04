@@ -1,7 +1,7 @@
 subscribers:
 
   camera_reading:
-    topic: /iris_demo/camera/image_raw
+    topic: /usb_cam/image_raw
     queue_size: 1
 
 actions:
