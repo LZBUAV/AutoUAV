@@ -1,6 +1,6 @@
 *.weights
 *.o
-./CMakeLists.txt
+/CMakeLists.txt
 .vscode
 cam_result
 os_result
