@@ -6,9 +6,13 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <vector>
 #include <stack>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 cv::Mat frame(60, 160, CV_8UC1), frame_resized;
-laser_radar::distance depth;
+// laser_radar::distance depth;
 obstacle_avoidance::obstacle_avoidance_result os_result, os_result_last;
 ros::Publisher res_pub;
 int count_save = 0;
@@ -120,8 +124,8 @@ int maximalRectangle(std::vector<std::vector<int>>& matrix, cv::Rect& roi)
         }
     }
 
-    roi.x = 0;
-    roi.y = 0;
+    roi.x = 80;
+    roi.y = 30;
     roi.width = 0;
     roi.height = 0;
 
@@ -184,18 +188,33 @@ int maximalRectangle(std::vector<std::vector<int>>& matrix, cv::Rect& roi)
     }
 }
 
-void lidar_sub_cb(const laser_radar::distance::ConstPtr& depth_data)
+void lidar_sub_cb(const sensor_msgs::PointCloud2::ConstPtr& input)
 {
-    depth = *depth_data;
+    pcl::PointCloud<pcl::PointXYZ> depth;
+    pcl::fromROSMsg(*input, depth);
+    
     std::vector<std::vector<int>> matrix, matrix_filter, matrix_filter_twice;
+
+    std::vector<float> data(9600, 0.0);
+    int num = 0;
+    for(int i = 0; i < 160; i++)
+    {
+        for(int j = 0; j < 60; j++)
+        {
+            data[(59-j)*160+(159-i)] = depth.points[num].x;
+            num++;
+        }
+    }
 
     for(int i = 0; i < 60; i++)
     {
         std::vector<int> row, row_filter, row_filter_twice;
         for(int j = 0; j < 160; j++)
         {
-            int temp = depth.data[i*160 + j];
-            if((temp > 1500 && temp < 65400))
+            int temp = 0;
+            float dep = data[i*160 + j];
+            // std::cout << dep << std::endl;
+            if(dep > 1.5)
                 {
                     temp = 255;
                 }
@@ -212,15 +231,16 @@ void lidar_sub_cb(const laser_radar::distance::ConstPtr& depth_data)
         matrix_filter_twice.push_back(row_filter_twice);  
     }
 
-    filter(matrix, matrix_filter);
-    filter(matrix_filter, matrix_filter_twice);
+    // filter(matrix, matrix_filter);
+    // filter(matrix_filter, matrix_filter_twice);
 
     for(int i = 0; i < 60; i++)
     {
         for(int j = 0; j < 160; j++)
         {
+            frame.at<uchar>(i,j) = matrix[i][j];
             // frame.data[i*160+j] = matrix_filter[i][j];
-            frame.at<uchar>(i,j) = matrix_filter_twice[i][j];
+            // frame.at<uchar>(i,j) = matrix_filter_twice[i][j];
         }
     }
 
@@ -272,8 +292,11 @@ void lidar_sub_cb(const laser_radar::distance::ConstPtr& depth_data)
 
     std::cout << os_result.is_ok << " " << os_result.center_x << " " << os_result.center_y << std::endl;
 
-    cv::rectangle(frame, roi, cv::Scalar(0, 0, 255), 1, 0);
-    cv::circle(frame, cv::Point(os_result.center_x, os_result.center_y), 2, cv::Scalar(0, 0, 255), 2);
+    if(os_result.is_ok == 1)
+    {
+        cv::rectangle(frame, roi, cv::Scalar(0, 0, 255), 1, 0);
+        cv::circle(frame, cv::Point(os_result.center_x, os_result.center_y), 2, cv::Scalar(0, 0, 255), 2);
+    }
 
     cv::resize(frame, frame_resized, cv::Size(160*3, 60*3));
 
@@ -288,7 +311,7 @@ int main(int argc, char**argv)
 {
     ros::init(argc, argv, "obstacle_avoidance");
     ros::NodeHandle nh;
-    ros::Subscriber lidar_sub = nh.subscribe<laser_radar::distance>("depthpoint", 1, lidar_sub_cb);
+    ros::Subscriber lidar_sub = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 1, lidar_sub_cb);
     res_pub = nh.advertise<obstacle_avoidance::obstacle_avoidance_result>("obstacle_avoidance_result", 1);
 
     ros::spin();

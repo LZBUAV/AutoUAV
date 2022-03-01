@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(obstacle_avoidance)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  pcl_conversions
+  pcl_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -209,3 +211,12 @@ include_directories(
 catkin_install_python(PROGRAMS scripts/lidar_obstacle_avoidance.py
 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+find_package(OpenCV REQUIRED)
+
+link_directories ( ${OpenCV_LIB_DIR} )
+
+include_directories ( ${OpenCV_INCLUDE_DIRS} )
+
+add_executable(obstacle_avoidance src/obstacle_avoidance.cpp)
+target_link_libraries(obstacle_avoidance ${OpenCV_LIBRARIES} ${OpenCV_LIBS} ${catkin_LIBRARIES})
