@@ -5,6 +5,10 @@
 cam_result
 os_result
 nano_result
+laser_radar/pointcloud/kong
+laser_radar/pointcloud/multi_tree
+laser_radar/pointcloud/no
+laser_radar/pointcloud/one_tree
 image_save/image
 image_pub/images
 image_match/base_images
