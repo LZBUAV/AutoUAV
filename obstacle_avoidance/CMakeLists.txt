@@ -209,3 +209,12 @@ include_directories(
 catkin_install_python(PROGRAMS scripts/lidar_obstacle_avoidance.py
 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+find_package(OpenCV REQUIRED)
+
+link_directories ( ${OpenCV_LIB_DIR} )
+
+include_directories ( ${OpenCV_INCLUDE_DIRS} )
+
+add_executable(obstacle_avoidance src/obstacle_avoidance.cpp)
+target_link_libraries(obstacle_avoidance ${OpenCV_LIBRARIES} ${OpenCV_LIBS} ${catkin_LIBRARIES})

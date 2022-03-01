@@ -17,13 +17,14 @@ class avoidance():
     def __init__(self):
         self.obstacleresult = obstacle_avoidance_result()
 
-    def call_back(self, cloud):
-        assert isinstance(cloud, PointCloud2)
-        gen = point_cloud2.read_points(cloud)
+    def call_back(self, dist):
+        # assert isinstance(cloud, PointCloud2)
+        # gen = point_cloud2.read_points(cloud)
         #实物
-        data = []
-        for point in gen:
-            data.append(point[0])
+        # data = []
+        # for point in gen:
+        #     data.append(point[0])
+        data = dist.data
 
         #仿真
         # cou = 0
@@ -45,12 +46,12 @@ class avoidance():
         二值化
         '''
         #安全距离，单位毫米mm
-        safety_distance = 3
+        safety_distance = 1000
         i = 0
         for dist_value in range(9600):
             each_line=data[dist_value]
             #根据深度值是否在安全距离外，将其二值化
-            if (each_line>safety_distance):#65500是饱和点，距离小于200mm；距离值0是无穷远点，绝对安全。
+            if (each_line == 0 or (each_line < 65400 and each_line>safety_distance)):#65500是饱和点，距离小于200mm；距离值0是无穷远点，绝对安全。
                 each_line = 1
             else:
                 each_line = 0
@@ -359,19 +360,19 @@ class avoidance():
         pub.publish(self.obstacleresult)
 
     def call(self, cloud):
-        assert isinstance(cloud, PointCloud2)
-        gen = point_cloud2.read_points(cloud)
-        data = []
-        count = 0
-        for point in gen:
-            count += 1
-            data.append(point[0])
-        print(count)
+        # assert isinstance(cloud, PointCloud2)
+        # gen = point_cloud2.read_points(cloud)
+        data = cloud.data
+        count = len(data)
+        # for point in gen:
+        #     count += 1
+        #     data.append(point[0])
+        # print(count)
         print(sum(data)/count)
  
 if __name__=='__main__':
     avoidance = avoidance()
     pub = rospy.Publisher('obstacle_avoidance_result', obstacle_avoidance_result, queue_size=1)
     rospy.init_node('obstacle_avoidance', anonymous=True)
-    rospy.Subscriber("/cloudpoint", PointCloud2, avoidance.call_back, queue_size = 1, buff_size = 52428800)
+    rospy.Subscriber("/depthpoint", distance, avoidance.call_back, queue_size = 1, buff_size = 52428800)
     rospy.spin()
