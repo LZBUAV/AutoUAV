@@ -19,167 +19,177 @@
 #include <darknet_ros_msgs/BoundingBox.h>
 #include <darknet_ros_msgs/BoundingBoxes.h>
 
-static const std::string RGB_WINDOW = "RGB Image window";
+#include <image_match/match_result.h>
+#include <std_msgs/Float64.h>
 
 cv::Mat rgbimage;
-cv::Rect selectRect;
-cv::Point origin;
+cv::Rect selectRect, last_selectRect;
+int init_count = 0;
+
 cv::Rect result;
 tracker_kcf::tracker_result center;
-int center_x = 0;
-int center_y = 0;
-int max_pra = 0;
-bool select_flag = false;
+
 bool bRenewROI = false;  // the flag to enable the implementation of KCF algorithm for the new chosen ROI
 bool bBeginKCF = false;
-bool enable_get_depth = false;
 
 bool HOG = true;
 bool FIXEDWINDOW = false;
 bool MULTISCALE = true;
 bool SILENT = true;
 bool LAB = false;
-bool is_person = false;
+
 bool is_init = false;
+
+ros::Publisher pub;
+std_msgs::Float64 quality;
+
 // Create KCFTracker object
 KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
 
-void onMouse(int event, int x, int y, int, void*)
+float cv_rect_distance(const cv::Rect& rect1, const cv::Rect& rect2)
 {
-    if (select_flag)
+  float center1_x = rect1.x + rect1.width/2.0;
+  float center1_y = rect1.y + rect1.height/2.0;
+  float center2_x = rect2.x + rect2.width/2.0;
+  float center2_y = rect2.y + rect2.height/2.0;
+  float d1 = std::pow((center1_x - center2_x), 2);
+  float d2 = std::pow((center1_y - center2_y), 2);
+  return std::pow((d1 + d2), 0.5);
+}
+
+int limit_x_y(int x, int low, int high)
+{
+    if(x < low)
     {
-        selectRect.x = MIN(origin.x, x);        
-        selectRect.y = MIN(origin.y, y);
-        selectRect.width = abs(x - origin.x);   
-        selectRect.height = abs(y - origin.y);
-        selectRect &= cv::Rect(0, 0, rgbimage.cols, rgbimage.rows);
+        x = low;
     }
-    if (event == cv::EVENT_LBUTTONDOWN)
+    if(x > high)
     {
-        bBeginKCF = false;  
-        select_flag = true; 
-        origin = cv::Point(x, y);       
-        selectRect = cv::Rect(x, y, 0, 0);  
+        x = high;
     }
-    else if (event == cv::EVENT_LBUTTONUP)
+    return x;
+}
+
+int limit_w_h(int x_y, int w_h, int high)
+{
+    if((x_y + w_h) > high)
     {
-        select_flag = false;
+        w_h = high - x_y;
+    }
+    
+    return w_h;
+}
+
+void get_bbox(const image_match::match_result bbox)
+{
+  if(!is_init)
+  {
+      if(init_count == 0)
+      {
+        last_selectRect = selectRect;
+      }
+
+      selectRect.x = limit_x_y(bbox.x, 0, 1279);
+      selectRect.y = limit_x_y(bbox.y, 0, 719);
+      selectRect.width = limit_w_h(selectRect.x, bbox.width, 1279);
+      selectRect.height = limit_w_h(selectRect.y, bbox.height, 719);
+
+      if(cv_rect_distance(last_selectRect, selectRect) < 200.0)
+      {
+        init_count++;
+        last_selectRect = selectRect;
+      }
+      else
+      {
+        init_count = 0;
+      }
+      
+      if(init_count == 5)
+      {
         bRenewROI = true;
+        is_init = true;
+        init_count = 0;
+      }
+      
+  }
+}
+
+void imageCb(const sensor_msgs::ImageConstPtr& msg)
+{
+  cv_bridge::CvImagePtr cv_ptr;
+  try
+  {
+    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  cv_ptr->image.copyTo(rgbimage);
+
+
+  if(bRenewROI)
+  {
+      tracker.init(selectRect, rgbimage);
+      bBeginKCF = true;
+      bRenewROI = false;
+  }
+
+  if(bBeginKCF)
+  {
+      result = tracker.update(rgbimage);
+
+      center.center_x = limit_x_y(int((result.x + result.width/2)), 0, 1279);
+      center.center_y = limit_x_y(int((result.y + result.height/2)), 0, 719);
+      center.x = limit_x_y(result.x, 0, 1279);
+      center.y = limit_x_y(result.y, 0, 719);
+      center.width = limit_w_h(center.x, result.width, 1279);
+      center.height = limit_w_h(center.y, result.height, 719);
+
+      cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
+      cv::putText(rgbimage, std::to_string(quality.data), cv::Point(center.x, center.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
+
+      pub.publish(center);
+      std::cout<< "center_x :" << center.center_x << ", center_y :" << center.center_y << " quality: " << quality.data << std::endl;
+  }
+  
+  cv::imshow("tracker", rgbimage);
+  cv::waitKey(1);
+}
+
+void tracker_qualityCb(const std_msgs::Float64::ConstPtr& confi)
+{
+    quality = *confi;
+    if(quality.data < 0.6 && is_init)
+    {
+        bRenewROI = false;
+        bBeginKCF = false;
+        is_init = false;
+        std::cout << "reinit: " << quality.data << std::endl;
     }
 }
 
-class ImageConverter
-{
-  ros::NodeHandle nh_;
-  image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
-  
-public:
-  ros::Publisher pub;
-  ros::Subscriber sub_bboxs;
-
-  ImageConverter()
-    : it_(nh_)
-  {
-    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1, &ImageConverter::imageCb, this);
-    pub = nh_.advertise<tracker_kcf::tracker_result>("tracker_result", 1);
-    sub_bboxs = nh_.subscribe("/darknet_ros/bounding_boxes", 1, &ImageConverter::get_bbox, this); 
-
-    cv::namedWindow(RGB_WINDOW);
-  }
- 
-  ~ImageConverter()
-  {
-    cv::destroyWindow(RGB_WINDOW);
-  }
-
-  void get_bbox(const darknet_ros_msgs::BoundingBoxes& bboxs)
-  {
-    if(!is_init)
-    {
-      int num_boxs = bboxs.bounding_boxes.size();
-      int index = 0;
-      for(int i = 0; i < num_boxs; i++)
-      {
-        if(bboxs.bounding_boxes[i].id == 0 && bboxs.bounding_boxes[i].probability >= max_pra)
-        {
-          index = i;
-          is_person = true;
-          max_pra = bboxs.bounding_boxes[i].probability;
-        }
-      }
-
-      if(is_person)
-      {
-        selectRect.x = bboxs.bounding_boxes[index].xmin;
-        selectRect.y = bboxs.bounding_boxes[index].ymin;
-        selectRect.width = bboxs.bounding_boxes[index].xmax - bboxs.bounding_boxes[index].xmin;
-        selectRect.height = bboxs.bounding_boxes[index].ymax - bboxs.bounding_boxes[index].ymin;
-        bRenewROI = true;
-        is_person = false;
-        is_init = true;
-      }
-    }
-  }
-
-  void imageCb(const sensor_msgs::ImageConstPtr& msg)
-  {
-    cv_bridge::CvImagePtr cv_ptr;
-    try
-    {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
-    }
-
-    cv_ptr->image.copyTo(rgbimage);
-
-    cv::setMouseCallback(RGB_WINDOW, onMouse, 0);
-
-    if(bRenewROI)
-    {
-        tracker.init(selectRect, rgbimage);
-        bBeginKCF = true;
-        bRenewROI = false;
-        enable_get_depth = false;
-    }
-
-    if(bBeginKCF)
-    {
-        result = tracker.update(rgbimage);
-        cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
-        enable_get_depth = true;
-        center_x = result.x + result.width/2;
-        center_y = result.y + result.height/2;
-        center.center_x = center_x;
-        center.center_y = center_y;
-        std::cout<< "center_x :" << center_x << ", center_y :" << center_y << std::endl;
-    }
-    else
-        cv::rectangle(rgbimage, selectRect, cv::Scalar(255, 0, 0), 2, 8, 0);
-
-    cv::imshow(RGB_WINDOW, rgbimage);
-    cv::waitKey(1);
-  }
-
-};
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "tracker_kcf");
-	ImageConverter ic;
+	
+  ros::NodeHandle nh_;
+  image_transport::ImageTransport it_(nh_);
+  image_transport::Subscriber image_sub_;
   
-	while(ros::ok())
-	{
-		ros::spinOnce();
-    ic.pub.publish(center);
+  
+  ros::Subscriber sub_bboxs;
+  ros::Subscriber tracker_quality;
 
-		if (cv::waitKey(33) == 'q')
-      break;
-	}
+  image_sub_ = it_.subscribe("/usb_cam0/image_raw", 1, imageCb);
+  sub_bboxs = nh_.subscribe("/match_result", 1, get_bbox); 
+  tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
+  pub = nh_.advertise<tracker_kcf::tracker_result>("tracker_result", 1);
+  
+  ros::spin();
 
 	return 0;
 }
