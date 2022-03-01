@@ -2,3 +2,11 @@
 *.o
 ./CMakeLists.txt
 .vscode
+cam_result
+os_result
+nano_result
+image_save/image
+image_pub/images
+image_match/base_images
+image_match/images
+image_match/match_result
