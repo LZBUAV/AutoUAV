@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   sensor_msgs
   message_generation 
+  darknet_ros_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -216,11 +217,13 @@ link_libraries(${OpenCV_LIB_DIR})
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/src/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
+
 
 file(GLOB_RECURSE sourcefiles "src/*.cpp")
 
 add_executable(image_match ${sourcefiles})
+add_dependencies(image_match ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(image_match stdc++fs ${OpenCV_LIBRARIES} ${OpenCV_LIBS} ${catkin_LIBRARIES})
