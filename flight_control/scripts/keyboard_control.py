@@ -16,10 +16,11 @@ import tty, termios
 from std_msgs.msg import String
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode, SetMavFrame
 
-MAX_LIN_VEL = 20
-MAX_ANGLE = 1
+MAX_LIN_VEL = 1.5
+MAX_ANGLE = 0.6
 LIN_VEL_STEP_SIZE = 0.1
 ANGLE_STEP_SIZE = 0.1
+
 
 
 def getKey():
