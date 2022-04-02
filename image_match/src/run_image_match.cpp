@@ -66,14 +66,14 @@ void matchCb(const darknet_ros_msgs::BoundingBoxes bboxs)
         else
         {
             count = 0;
-            cv::putText(rgbimage, "No Match", cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
+            cv::putText(rgbimage, "one", cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
             std::cout << "No Match" << std::endl;
         }
         
-        cv::imshow(match_window, rgbimage);
+        // cv::imshow(match_window, rgbimage);
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_match/match_result/" + std::to_string(result_count) + ".jpg", rgbimage);
         // result_count++;
-        cv::waitKey(1);
+        // cv::waitKey(1);
     }
 }
 
@@ -81,11 +81,14 @@ void track_bboxCb(const tracker_kcf::tracker_result bbox)
 {
     if(!rgbimage.empty())
     {
-        std_msgs::Float64 confi;
-        cv::Rect roi(bbox.x, bbox.y, bbox.width, bbox.height);
-        std::cout << bbox.x << " " << bbox.y << " " << bbox.width << " " << bbox.height << std::endl;
-        confi.data = image_match_.compare_opencv(rgbimage, roi);
-        tracker_quality.publish(confi);
+        if(bbox.width > 0 && bbox.height > 0)
+        {
+            std_msgs::Float64 confi;
+            cv::Rect roi(bbox.x, bbox.y, bbox.width, bbox.height);
+            std::cout << bbox.x << " " << bbox.y << " " << bbox.width << " " << bbox.height << std::endl;
+            confi.data = image_match_.compare_opencv(rgbimage, roi);
+            tracker_quality.publish(confi);
+        }
     }
 }
 
@@ -113,6 +116,12 @@ int main(int argc, char** argv)
         result.is_person = 0;
         ros::spinOnce();
         pub.publish(result);
+        if(!rgbimage.empty())
+        {
+            cv::imshow(match_window, rgbimage);
+            cv::waitKey(1);
+        }
+        
         rate.sleep();
         
     }
