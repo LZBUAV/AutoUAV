@@ -25,6 +25,7 @@
 cv::Mat rgbimage;
 cv::Rect selectRect, last_selectRect;
 int init_count = 0;
+int tracker_count = 0;
 
 cv::Rect result;
 tracker_kcf::tracker_result center;
@@ -82,33 +83,33 @@ int limit_w_h(int x_y, int w_h, int high)
 
 void get_bbox(const image_match::match_result bbox)
 {
-  if(!is_init)
+  if(!is_init && bbox.width > 0 && bbox.height > 0)
   {
-      if(init_count == 0)
-      {
-        last_selectRect = selectRect;
-      }
+      // if(init_count == 0)
+      // {
+      //   last_selectRect = selectRect;
+      // }
 
       selectRect.x = limit_x_y(bbox.x, 0, 1279);
       selectRect.y = limit_x_y(bbox.y, 0, 719);
       selectRect.width = limit_w_h(selectRect.x, bbox.width, 1279);
       selectRect.height = limit_w_h(selectRect.y, bbox.height, 719);
 
-      if(cv_rect_distance(last_selectRect, selectRect) < 200.0)
-      {
-        init_count++;
-        last_selectRect = selectRect;
-      }
-      else
-      {
-        init_count = 0;
-      }
+      // if(cv_rect_distance(last_selectRect, selectRect) < 200.0)
+      // {
+      //   init_count++;
+      //   last_selectRect = selectRect;
+      // }
+      // else
+      // {
+      //   init_count = 0;
+      // }
       
-      if(init_count == 5)
+      if(1)
       {
         bRenewROI = true;
         is_init = true;
-        init_count = 0;
+        // init_count = 0;
       }
       
   }
@@ -162,8 +163,10 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 void tracker_qualityCb(const std_msgs::Float64::ConstPtr& confi)
 {
     quality = *confi;
-    if(quality.data < 0.6 && is_init)
+    tracker_count++;
+    if((quality.data < 0.4 || tracker_count > 60) && is_init)
     {
+        tracker_count = 0;
         bRenewROI = false;
         bBeginKCF = false;
         is_init = false;

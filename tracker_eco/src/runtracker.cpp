@@ -26,7 +26,7 @@
 
 cv::Mat origin_noresize, rgbimage;
 cv::Rect selectRect;
-
+int tracker_count = 0;
 bool bRenewROI = false;
 bool bBeginECOHC = false;
 bool is_init = false;
@@ -64,12 +64,18 @@ int limit_w_h(int x_y, int w_h, int high)
 
 void get_bbox(const image_match::match_result bbox)
 {
-    if(!is_init)
+    if(!is_init && bbox.width > 0 && bbox.height > 0)
     {
-        selectRect.x = limit_x_y(int(bbox.x/1280.0*500.0), 0, 499);
-        selectRect.y = limit_x_y(int(bbox.y/720.0*400.0), 0, 399);
-        selectRect.width = limit_w_h(selectRect.x, int(bbox.width/1280.0*500.0), 499);
-        selectRect.height = limit_w_h(selectRect.y, int(bbox.height/720.0*400.0), 399);
+        // selectRect.x = limit_x_y(int(bbox.x/1280.0*500.0), 0, 499);
+        // selectRect.y = limit_x_y(int(bbox.y/720.0*400.0), 0, 399);
+        // selectRect.width = limit_w_h(selectRect.x, int(bbox.width/1280.0*500.0), 499);
+        // selectRect.height = limit_w_h(selectRect.y, int(bbox.height/720.0*400.0), 399);
+
+        selectRect.x = limit_x_y(bbox.x, 0, 1279);
+        selectRect.y = limit_x_y(bbox.y, 0, 719);
+        selectRect.width = limit_w_h(selectRect.x, bbox.width, 1279);
+        selectRect.height = limit_w_h(selectRect.y, bbox.height, 719);
+
         bRenewROI = true;
         is_init = true;
     }
@@ -88,10 +94,11 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    cv_ptr->image.copyTo(origin_noresize);
-    if(!origin_noresize.empty())
+    cv_ptr->image.copyTo(rgbimage);
+    if(!rgbimage.empty())
     {
-        cv::resize(origin_noresize, rgbimage, cv::Size(500, 400));
+        // cv::resize(origin_noresize, rgbimage, cv::Size(1280, 720));
+
 
         if(bRenewROI)
         {
@@ -107,22 +114,28 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
             
             tracker.update(rgbimage, bbox);
             
-            center.center_x = limit_x_y(int((bbox.x + bbox.width/2)/500.0*1280.0), 0, 1279);
-            center.center_y = limit_x_y(int((bbox.y + bbox.height/2)/400.0*720.0), 0, 719);
-            center.x = limit_x_y(int(bbox.x/500.0*1280), 0, 1279);
-            center.y = limit_x_y(int(bbox.y/400.0*720), 0, 719);
-            center.width = limit_w_h(center.x, int(bbox.width/500.0*1280.0), 1279);
-            center.height = limit_w_h(center.y, int(bbox.height/400.0*720.0), 719);
+            // center.center_x = limit_x_y(int((bbox.x + bbox.width/2)/500.0*1280.0), 0, 1279);
+            // center.center_y = limit_x_y(int((bbox.y + bbox.height/2)/400.0*720.0), 0, 719);
+            // center.x = limit_x_y(int(bbox.x/500.0*1280), 0, 1279);
+            // center.y = limit_x_y(int(bbox.y/400.0*720), 0, 719);
+            // center.width = limit_w_h(center.x, int(bbox.width/500.0*1280.0), 1279);
+            // center.height = limit_w_h(center.y, int(bbox.height/400.0*720.0), 719);
+            center.center_x = limit_x_y(int((bbox.x + bbox.width/2)), 0, 1279);
+            center.center_y = limit_x_y(int((bbox.y + bbox.height/2)), 0, 719);
+            center.x = limit_x_y(bbox.x, 0, 1279);
+            center.y = limit_x_y(bbox.y, 0, 719);
+            center.width = limit_w_h(center.x, bbox.width, 1279);
+            center.height = limit_w_h(center.y, bbox.height, 719);
 
             cv::Rect result(center.x, center.y, center.width, center.height);            
-            cv::rectangle(origin_noresize, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
-            cv::putText(origin_noresize, std::to_string(quality.data), cv::Point(center.x, center.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
+            cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
+            cv::putText(rgbimage, std::to_string(quality.data), cv::Point(center.x, center.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
 
             pub.publish(center);
             std::cout<< "center_x :" << center.center_x << ", center_y :" << center.center_y << " quality: " << quality.data << std::endl;
         }
 
-        cv::imshow("tracker", origin_noresize);
+        cv::imshow("tracker", rgbimage);
         cv::waitKey(1);
     }
     
@@ -131,8 +144,10 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
 void tracker_qualityCb(const std_msgs::Float64::ConstPtr& confi)
 {
     quality = *confi;
-    if(quality.data < 0.3)
+    tracker_count ++;
+    if(quality.data < 0.4 || tracker_count > 120)
     {
+        tracker_count = 0;
         bRenewROI = false;
         bBeginECOHC = false;
         is_init = false;
@@ -153,7 +168,7 @@ int main(int argc, char** argv)
 
     image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, imageCb);
     sub_bboxs =  nh_.subscribe("/match_result", 1, get_bbox);
-    tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
+    // tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
     pub = nh_.advertise<tracker_eco::tracker_result>("tracker_result", 1);
     
     ros::spin();
