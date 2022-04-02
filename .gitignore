@@ -1,3 +1,4 @@
 *.weights
 *.o
 CMakeLists.txt
+image_match/base_images/*
