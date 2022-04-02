@@ -91,7 +91,7 @@ if __name__=="__main__":
                 print('GUIDED')
 
         elif key == 't':
-            alt = 1.2
+            alt = 1.5
             rospy.wait_for_service('/mavros/cmd/takeoff')
             takeoff = rospy.ServiceProxy('/mavros/cmd/takeoff', CommandTOL)
             takeoff_res = takeoff(altitude = alt, latitude = 0, longitude = 0, min_pitch = 0, yaw = 0)
