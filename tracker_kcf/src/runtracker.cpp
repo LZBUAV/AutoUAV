@@ -164,7 +164,7 @@ void tracker_qualityCb(const std_msgs::Float64::ConstPtr& confi)
 {
     quality = *confi;
     tracker_count++;
-    if((quality.data < 0.4 || tracker_count > 60) && is_init)
+    if((quality.data < 0.4 || tracker_count > 40) && is_init)
     {
         tracker_count = 0;
         bRenewROI = false;
