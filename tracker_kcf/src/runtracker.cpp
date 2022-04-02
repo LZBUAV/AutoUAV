@@ -184,7 +184,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub_bboxs;
   ros::Subscriber tracker_quality;
 
-  image_sub_ = it_.subscribe("/usb_cam0/image_raw", 1, imageCb);
+  image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, imageCb);
   sub_bboxs = nh_.subscribe("/match_result", 1, get_bbox); 
   tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
   pub = nh_.advertise<tracker_kcf::tracker_result>("tracker_result", 1);
