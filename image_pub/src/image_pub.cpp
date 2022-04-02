@@ -37,16 +37,15 @@ int main(int argc, char** argv)
 
     cv::Mat frame, undist;
 
-    double fps = 0.0;
+    // double fps = 0.0;
 
     std::vector<std::string> images_list = readFolder(argv[1]);
     std::sort(images_list.begin(), images_list.end(), cmp);
-
     ros::Rate loop_rate(10);
     int i = 0;
     while(ros::ok())
     {
-        unsigned long timer_start = GetTickCount();
+        // unsigned long timer_start = GetTickCount();
 
         frame = cv::imread(images_list[i]);
         std::cout << images_list[i] << std::endl;
@@ -54,27 +53,28 @@ int main(int argc, char** argv)
         i++;
         if(i == images_list.size())
         {
-            i = 0;
+            std::cout << "done!" << std::endl;
+            // i = 0;
+            break;
         }
 
         // cv::undistort(frame, undist, camera_matrix0, distcoficient0);
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_pub/images/" + std::to_string(i) + ".jpg", undist);
         
-        // cv::imshow("image_forward", undist);
-        // int key = cv::waitKey(1);
-        // if(key == 'q')
-        // {
-        //     break;
-        // }
-
+        cv::imshow("image_forward", frame);
+        int key = cv::waitKey(1);
+        if(key == 'q')
+        {
+            break;
+        }
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
         pub.publish(msg);
 
-        unsigned long timer_end = GetTickCount();
-        fps = 1000.0/(timer_end - timer_start);
+        // unsigned long timer_end = GetTickCount();
+        // fps = 1000.0/(timer_end - timer_start);
         // std::cout << frame.cols << " " << frame.rows << " " << fps <<  std::endl;
 
-        ros::spinOnce();
+        // ros::spinOnce();
         loop_rate.sleep();
 
     }
