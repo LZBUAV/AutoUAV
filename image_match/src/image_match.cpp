@@ -192,8 +192,8 @@ bool IMAGE_MATCH::match(darknet_ros_msgs::BoundingBoxes bbox, cv::Mat& rgbimage,
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_match/images/qianmuhu/" + std::to_string(save_index) + ".jpg", rgbimage(max_roi));
         // save_index++;
 
-        // cv::rectangle(rgbimage, cv::Rect(result.x, result.y, result.width, result.height), cv::Scalar(0, 255, 255), 1, 0);
-        // cv::putText(rgbimage, "max_conficient: " + std::to_string(max_conficient), cv::Point(result.x, result.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
+        cv::rectangle(rgbimage, cv::Rect(result.x, result.y, result.width, result.height), cv::Scalar(0, 255, 255), 1, 0);
+        cv::putText(rgbimage, "max_conficient: " + std::to_string(max_conficient), cv::Point(result.x, result.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
         std::cout << "最大相似度: " << max_conficient << std::endl;
         
     }

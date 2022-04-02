@@ -8,13 +8,13 @@
 #include <tracker_eco/tracker_result.h>
 #include <tracker_kcf/tracker_result.h>
 
-match::IMAGE_MATCH image_match_("/home/nvidia/project/catkin_ws/src/image_match/base_images");
+match::IMAGE_MATCH image_match_("/home/lzb/catkin_ws/src/image_match/base_images");
 cv::Mat rgbimage;
 image_match::match_result result, last_result;
 int count = 0, result_count = 0;
 std::string match_window = "match";
 ros::Publisher pub;
-// ros::Publisher tracker_quality;
+ros::Publisher tracker_quality;
 
 
 void imageCb(const sensor_msgs::ImageConstPtr& msg)
@@ -70,24 +70,24 @@ void matchCb(const darknet_ros_msgs::BoundingBoxes bboxs)
             std::cout << "No Match" << std::endl;
         }
         
-        // cv::imshow(match_window, rgbimage);
+        cv::imshow(match_window, rgbimage);
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_match/match_result/" + std::to_string(result_count) + ".jpg", rgbimage);
         // result_count++;
-        // cv::waitKey(1);
+        cv::waitKey(1);
     }
 }
 
-// void track_bboxCb(const tracker_kcf::tracker_result bbox)
-// {
-//     if(!rgbimage.empty())
-//     {
-//         std_msgs::Float64 confi;
-//         cv::Rect roi(bbox.x, bbox.y, bbox.width, bbox.height);
-//         std::cout << bbox.x << " " << bbox.y << " " << bbox.width << " " << bbox.height << std::endl;
-//         confi.data = image_match_.compare_opencv(rgbimage, roi);
-//         tracker_quality.publish(confi);
-//     }
-// }
+void track_bboxCb(const tracker_kcf::tracker_result bbox)
+{
+    if(!rgbimage.empty())
+    {
+        std_msgs::Float64 confi;
+        cv::Rect roi(bbox.x, bbox.y, bbox.width, bbox.height);
+        std::cout << bbox.x << " " << bbox.y << " " << bbox.width << " " << bbox.height << std::endl;
+        confi.data = image_match_.compare_opencv(rgbimage, roi);
+        tracker_quality.publish(confi);
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -99,11 +99,11 @@ int main(int argc, char** argv)
     ros::Subscriber bbox_sub_;
     ros::Subscriber tracker_sub;
     
-    image_sub_ = it_.subscribe("/usb_cam0/image_raw", 1, imageCb);
-    bbox_sub_ = nh_.subscribe("/nanodet/bounding_boxes", 1, matchCb);
-    // tracker_sub = nh_.subscribe("/tracker_result", 1, track_bboxCb);
+    image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, imageCb);
+    bbox_sub_ = nh_.subscribe("/darknet_ros/bounding_boxes", 1, matchCb);
+    tracker_sub = nh_.subscribe("/tracker_result", 1, track_bboxCb);
     pub = nh_.advertise<image_match::match_result>("match_result", 1);
-    // tracker_quality = nh_.advertise<std_msgs::Float64>("tracker_quality", 1);
+    tracker_quality = nh_.advertise<std_msgs::Float64>("tracker_quality", 1);
 
     ros::Rate rate(10);
 

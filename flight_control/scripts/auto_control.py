@@ -29,13 +29,13 @@ class auto_control():
         self.flag = 0
         self.twist = TwistStamped()
         #航向PID控制
-        self.yaw_pid = PID(1.0/320.0, 1.0/3420.0, 1.0/8200.0, 320.0)
+        self.yaw_pid = PID(1.0/320.0, 1.0/3420.0, 1.0/8200.0, 640.0)
         #前进速度PID控制
-        self.forward_pid = PID(1.0/120.0, 1.0/1600.0, 1.0/9000.0, 340.0)
+        self.forward_pid = PID(1.0/120.0, 1.0/1600.0, 1.0/9000.0, 250.0)
         #左右飞行速度PID控制
-        self.right_pid = PID(1.0/12.0, 0.0, 0.0, 0)
+        self.right_pid = PID(1.0/12.0, 0.0, 0.0, 80.0)
         #上下飞行速度PID控制 
-        self.up_pid = PID(1.0/6.0, 0.0, 0.0, 0)
+        self.up_pid = PID(1.0/6.0, 0.0, 0.0, 30.0)
 
     def track_call_back(self, center):
 
