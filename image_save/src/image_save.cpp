@@ -14,7 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 cv::Mat rgbimage0, rgbimage1, undist_rgbimage0, undist_rgbimage1;
-float32_t height, height_thrd = 0.5;
+float height, height_thrd = 0.5;
 mavros_msgs::State current_state;
 unsigned long cam0_count = 0, cam1_count = 0;
 
@@ -92,15 +92,16 @@ void image0cb(const sensor_msgs::ImageConstPtr& msg)
 
     cv_ptr->image.copyTo(rgbimage0);
 
-    if(height >= height_thrd)
+    // if(height >= height_thrd)
     {
         // cv::imshow("image0", rgbimage0);
         // cv::waitKey(1);
         // ros::Time time_begin = ros::Time::now();
         // cv::undistort(rgbimage0, undist_rgbimage0, camera_matrix0, distcoficient0);
-        cv::imwrite("/home/nvidia/project/catkin_ws/src/image_save/image/cam0/cam0_" + std::to_string(cam0_count) + "_origin_" + std::to_string(height) + "_" + std::to_string(gps_time.header.stamp.sec) + ".jpg", rgbimage0);
+        cv::imwrite("/home/lzb/catkin_ws/src/image_save/image/cam0/cam0_" + std::to_string(cam0_count) + "_.jpg", rgbimage0);
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_save/image/undist/cam0/cam0_" + std::to_string(cam0_count) + "_undist_" + std::to_string(height) + "_" + std::to_string(gps_time.header.stamp.sec) + ".jpg", undist_rgbimage0);
         cam0_count++;
+        std::cout << cam0_count << std::endl;
         // ros::Time time_end = ros::Time::now();
         // ros::Duration duration = time_end - time_begin;
         // std::cout << "time cost in save image: " << duration.toSec() << std::endl;
@@ -131,6 +132,7 @@ void image1cb(const sensor_msgs::ImageConstPtr& msg)
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_save/image/undist/cam1/cam1_" + std::to_string(cam1_count) + "_undist_" + std::to_string(height) + "_" +  std::to_string(gps_time.header.stamp.sec) + ".jpg", undist_rgbimage1);
         // cv::waitKey(20);
         cam1_count++;
+        std::cout << cam1_count << std::endl;
     } 
 }
 
@@ -139,15 +141,15 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "image_save");
     ros::NodeHandle nh;
-    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 1, state_cb);
-    ros::Subscriber gps_rel_alt_sub = nh.subscribe<std_msgs::Float64>("/mavros/global_position/rel_alt", 1, gps_rel_alt_cb);
-    ros::Subscriber lidar_alt_sub = nh.subscribe<sensor_msgs::Range>("/mavros/distance_sensor/rangefinder_pub", 1, lidar_alt_cb);
-    ros::Subscriber gps_time_sub = nh.subscribe<sensor_msgs::TimeReference>("/mavros/time_reference", 1, gps_time_cb);
+    // ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 1, state_cb);
+    // ros::Subscriber gps_rel_alt_sub = nh.subscribe<std_msgs::Float64>("/mavros/global_position/rel_alt", 1, gps_rel_alt_cb);
+    // ros::Subscriber lidar_alt_sub = nh.subscribe<sensor_msgs::Range>("/mavros/distance_sensor/rangefinder_pub", 1, lidar_alt_cb);
+    // ros::Subscriber gps_time_sub = nh.subscribe<sensor_msgs::TimeReference>("/mavros/time_reference", 1, gps_time_cb);
     
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber image0_sub, image1_sub;
-    image0_sub = it.subscribe("/usb_cam0/image_raw", 1, image0cb);
-    image1_sub = it.subscribe("/usb_cam1/image_raw", 1, image1cb);
+    image0_sub = it.subscribe("/iris_demo/camera/image_raw", 1, image0cb);
+    // image1_sub = it.subscribe("/usb_cam1/image_raw", 1, image1cb);
 
     ros::spin();
 
