@@ -1,5 +1,10 @@
 *.weights
 *.o
+.vscode
 CMakeLists.txt
 image_match/base_images/**
+image_match/images/**
 image_save/image/**
+image_pub/images/**
+obstacle_avoidance/os_result/**
+laser_radar/pointcloud/**
