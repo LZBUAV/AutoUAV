@@ -10,6 +10,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <fstream>
 
 cv::Mat frame(60, 160, CV_8UC1), frame_resized;
 // laser_radar::distance depth;
@@ -17,6 +18,7 @@ obstacle_avoidance::obstacle_avoidance_result os_result, os_result_last;
 ros::Publisher res_pub;
 int count_save = 0;
 int result_count = 0;
+std::ofstream outfile;
 
 void filter(const std::vector<std::vector<int>>& src, std::vector<std::vector<int>>& dst)
 {
@@ -289,6 +291,7 @@ void lidar_sub_cb(const sensor_msgs::PointCloud2::ConstPtr& input)
     }
 
     res_pub.publish(os_result);
+    // outfile << os_result.center_x << "," << os_result.center_y << "," << os_result.is_ok << std::endl;
 
     std::cout << os_result.is_ok << " " << os_result.center_x << " " << os_result.center_y << std::endl;
 
@@ -301,7 +304,7 @@ void lidar_sub_cb(const sensor_msgs::PointCloud2::ConstPtr& input)
     cv::resize(frame, frame_resized, cv::Size(160*3, 60*3));
 
     cv::imshow("depth", frame_resized);
-    // cv::imwrite("/home/nvidia/project/catkin_ws/src/obstacle_avoidance/os_result/" + std::to_string(count_save) + ".jpg", frame);
+    // cv::imwrite("/home/lzb/catkin_ws/src/obstacle_avoidance/os_result/" + std::to_string(count_save) + ".jpg", frame);
     // count_save++;
     cv::waitKey(1);
         
@@ -313,6 +316,7 @@ int main(int argc, char**argv)
     ros::NodeHandle nh;
     ros::Subscriber lidar_sub = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 1, lidar_sub_cb);
     res_pub = nh.advertise<obstacle_avoidance::obstacle_avoidance_result>("obstacle_avoidance_result", 1);
+    // outfile.open("/home/lzb/catkin_ws/src/obstacle_avoidance/os_result/result.txt");
 
     ros::spin();
 

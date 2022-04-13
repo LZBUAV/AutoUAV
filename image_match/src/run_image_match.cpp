@@ -8,6 +8,8 @@
 #include <tracker_eco/tracker_result.h>
 #include <tracker_kcf/tracker_result.h>
 
+#include <fstream>
+
 match::IMAGE_MATCH image_match_("/home/lzb/catkin_ws/src/image_match/base_images");
 cv::Mat rgbimage;
 image_match::match_result result, last_result;
@@ -15,7 +17,7 @@ int count = 0, result_count = 0;
 std::string match_window = "match";
 ros::Publisher pub;
 ros::Publisher tracker_quality;
-
+std::ofstream outfile;
 
 void imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -71,7 +73,7 @@ void matchCb(const darknet_ros_msgs::BoundingBoxes bboxs)
         }
         
         // cv::imshow(match_window, rgbimage);
-        // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_match/match_result/" + std::to_string(result_count) + ".jpg", rgbimage);
+        // cv::imwrite("/home/lzb/catkin_ws/src/image_match/match_result/" + std::to_string(result_count) + ".jpg", rgbimage);
         // result_count++;
         // cv::waitKey(1);
     }
@@ -108,6 +110,8 @@ int main(int argc, char** argv)
     pub = nh_.advertise<image_match::match_result>("match_result", 1);
     tracker_quality = nh_.advertise<std_msgs::Float64>("tracker_quality", 1);
 
+    // outfile.open("/home/lzb/catkin_ws/src/image_match/match_result/match_result.txt");
+
     ros::Rate rate(10);
 
     while (ros::ok())
@@ -116,6 +120,7 @@ int main(int argc, char** argv)
         result.is_person = 0;
         ros::spinOnce();
         pub.publish(result);
+        // outfile << result.x << "," << result.y << "," << result.width << "," << result.height << "," << result.conf << "," << result.is_person << std::endl;
         if(!rgbimage.empty())
         {
             cv::imshow(match_window, rgbimage);

@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "image0_publisher");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
-    image_transport::Publisher pub = it.advertise("usb_cam0/image_raw", 1);
+    image_transport::Publisher pub = it.advertise("/iris_demo/camera/image_raw", 1);
 
     cv::Mat frame, undist;
 
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 
     std::vector<std::string> images_list = readFolder(argv[1]);
     std::sort(images_list.begin(), images_list.end(), cmp);
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(3);
     int i = 0;
     while(ros::ok())
     {
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
         // cv::undistort(frame, undist, camera_matrix0, distcoficient0);
         // cv::imwrite("/home/nvidia/project/catkin_ws/src/image_pub/images/" + std::to_string(i) + ".jpg", undist);
         
-        cv::imshow("image_forward", frame);
+        cv::imshow("image", frame);
         int key = cv::waitKey(1);
         if(key == 'q')
         {

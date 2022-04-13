@@ -24,6 +24,8 @@
 
 #include "eco.hpp"
 
+#include <fstream>
+
 cv::Mat origin_noresize, rgbimage;
 cv::Rect selectRect;
 int tracker_count = 0;
@@ -38,6 +40,8 @@ std_msgs::Float64 quality;
 eco::ECO tracker;
 eco::EcoParameters parameters;
 tracker_eco::tracker_result center;
+
+std::ofstream outfile;
 
 int limit_x_y(int x, int low, int high)
 {
@@ -132,6 +136,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
             cv::putText(rgbimage, std::to_string(quality.data), cv::Point(center.x, center.y-5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
 
             pub.publish(center);
+            // outfile << center.x << "," << center.y << "," << center.width <<  center.height << "," << center.center_x << "," << center.center_y << "," << quality.data << std::endl;
             std::cout<< "center_x :" << center.center_x << ", center_y :" << center.center_y << " quality: " << quality.data << std::endl;
         }
 
@@ -145,7 +150,7 @@ void tracker_qualityCb(const std_msgs::Float64::ConstPtr& confi)
 {
     quality = *confi;
     tracker_count ++;
-    if(quality.data < 0.4 || tracker_count > 90)
+    if(quality.data < 0.4 || tracker_count > 50)
     {
         tracker_count = 0;
         bRenewROI = false;
@@ -166,9 +171,11 @@ int main(int argc, char** argv)
     ros::Subscriber sub_bboxs;
     ros::Subscriber tracker_quality;
 
+    // outfile.open("/home/lzb/catkin_ws/src/tracker_eco/tracker_result/tracker_result.txt");
+
     image_sub_ = it_.subscribe("/iris_demo/camera/image_raw", 1, imageCb);
     sub_bboxs =  nh_.subscribe("/match_result", 1, get_bbox);
-    // tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
+    tracker_quality = nh_.subscribe("/tracker_quality", 1, tracker_qualityCb);
     pub = nh_.advertise<tracker_eco::tracker_result>("tracker_result", 1);
     
     ros::spin();

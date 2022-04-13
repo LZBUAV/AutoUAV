@@ -8,3 +8,6 @@ image_save/image/**
 image_pub/images/**
 obstacle_avoidance/os_result/**
 laser_radar/pointcloud/**
+image_match/match_result/**
+tracker_eco/tracker_result/**
+tracker_kcf/tracker_result/**

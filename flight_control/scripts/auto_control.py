@@ -2,13 +2,6 @@
 # encoding: utf-8
 
 # By LiZhanBo 2021/5/21 此代码价值一亿人民币，版权所有 翻版必究
-# 程序应该将Ardupilot的坐标系模式设置为FRAME_BODY_NED = 8，然后向MavROS的/mavros/setpoint_velocity/cmd_vel节点发送RFU坐标系，
-# MAVROS会自动将RFU坐标系下的线速度和角速度转换为Ardupilot的FRAME_BODY_NED下的速度分量
-# 启动SITL、GAZEBO、apm.launch后，启动该程序，该程序使用步骤：1.按g设置微GUIDED模式，2.按y解锁，3.按t起飞，4,起飞完成后按b开始控制，5.按f设置为FRAME_BODY_NED模式,然后按9个控制按键修改速度值
-# 按键操作： w：增加前飞速度，x：增加后飞速度，a：增加左飞速度，d：增加右飞速度，q：增加左转速度，e：增加右转速度，z：增加高度，c：降低高度
-#  q w e
-#  a s d
-#  z x c
 
 import rospy
 from geometry_msgs.msg import TwistStamped
