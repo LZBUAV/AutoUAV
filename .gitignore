@@ -14,3 +14,5 @@ image_pub/images
 image_match/base_images
 image_match/images
 image_match/match_result
+tracker_kcf/tracker_result
+tracker_eco/tracker_result
